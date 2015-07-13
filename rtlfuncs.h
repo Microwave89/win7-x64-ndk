@@ -777,6 +777,8 @@ RtlAllocateHeap(
     _In_ SIZE_T Size
 );
 
+NTSTATUS RtlAllocateMemoryZone(PVOID pMemoryZone, SIZE_T blockSize, PVOID* ppBlock);
+
 _Must_inspect_result_
 NTSYSAPI
 PVOID

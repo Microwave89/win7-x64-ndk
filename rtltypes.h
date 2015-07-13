@@ -1704,6 +1704,11 @@ struct _RTL_MEMORY_STREAM
     HANDLE ProcessHandle;
 };
 
+typedef void(*PKI_RAISE_USER_EXCEPTION_DISPATCHER)(void);
+typedef void(*PKI_USER_APC_DISPATCHER)(void);
+typedef void(*PKI_USER_CALLBACK_DISPATCHER)(void);
+typedef void(*PKI_USER_EXCEPTION_DISPATCHER)(void);
+
 #endif /* NTOS_MODE_USER */
 
 #ifdef __cplusplus
