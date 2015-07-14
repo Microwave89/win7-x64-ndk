@@ -4481,6 +4481,8 @@ RtlFindActivationContextSectionGuid(
     void *ptr
 );
 
+void RtlUserThreadStart(PTHREAD_START_ROUTINE fpTransferAddress, PVOID pContext);
+
 #ifdef __cplusplus
 }
 #endif

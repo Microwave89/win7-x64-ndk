@@ -1704,10 +1704,15 @@ struct _RTL_MEMORY_STREAM
     HANDLE ProcessHandle;
 };
 
+///Quite undoc'd, prototypes from http://www.nynaeve.net/?p=200!
+///Unverified so far, also unclear which is x64 and which not.
 typedef void(*PKI_RAISE_USER_EXCEPTION_DISPATCHER)(void);
-typedef void(*PKI_USER_APC_DISPATCHER)(void);
-typedef void(*PKI_USER_CALLBACK_DISPATCHER)(void);
-typedef void(*PKI_USER_EXCEPTION_DISPATCHER)(void);
+typedef void(*PKI_USER_APC_DISPATCHER)(__in PCONTEXT pContext, __in PVOID pApcContext, __in PVOID pArgument1, __in PVOID pArgument2, __in PKNORMAL_ROUTINE fpApcRoutine);
+typedef void(*PKI_USER_CALLBACK_DISPATCHER)(__in PVOID pCallbackArgument, __in ULONG callbackIndex);
+typedef void(*PKI_USER_EXCEPTION_DISPATCHER)(__in PCONTEXT pContextRecord, __in PEXCEPTION_RECORD pExceptionRecord);
+typedef void(*PLDR_INITIALIZE_THUNK)(__in PCONTEXT pContext, __in PVOID ntdllBaseAddress);
+
+
 
 #endif /* NTOS_MODE_USER */
 
