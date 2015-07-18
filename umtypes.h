@@ -83,8 +83,10 @@ Author:
 #define ALIGN_DOWN_T(s, t) \
     ((ULONGLONG)(s) & ~(sizeof(t) - 1))
 
+///Parenthesis bug in here!!!!!!!!!
 #define ALIGN_UP_T(s, t) \
     (ALIGN_DOWN(((ULONGLONG)(s) + sizeof(t) - 1), t))
+///End parenthesis bug
 
 #define ALIGN_DOWN(s, alignmentSize) \
     ((ULONGLONG)(s) & ~(alignmentSize - 1))
