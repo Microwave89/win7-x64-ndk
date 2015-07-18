@@ -24,6 +24,9 @@ Author:
 //
 #include <..\ndk\umtypes.h>
 #include <..\ndk\dbgktypes.h>
+#include <..\ndk\exfuncs.h>
+#include <..\ndk\rtlfuncs.h>
+#include <ntstrsafe.h>
 
 //
 // Native calls
@@ -140,16 +143,16 @@ ZwSetInformationDebugObject(
     _Out_opt_ PULONG ReturnLength
 );
 
-#if defined(NTOS_MODE_USER) && !defined(BOOT_APP)
-
+//#if defined(NTOS_MODE_USER) && !defined(BOOT_APP)
 //int _fltused = 0;
-
+#if defined(NTOS_MODE_USER)
+#if !defined(BOOT_APP)
 extern void __cdecl __va_start(va_list *, ...);
 #define my_va_start(ap, x) (__va_start(&ap, x))
 typedef int(*P_VSNPRINTF_S)(char *buffer, unsigned long long sizeOfBuffer, unsigned long long count, const char *format, va_list argptr);
 static P_VSNPRINTF_S sg_fpVsnprintf_s;
 
-static void DebugPrint2A(const char* pFormatstring, ...){
+static void DebugPrint2A(const char* pFormatstring, ...){	///LEGACY!!! Use myWPrintf in new designs!
 	void* hMod = (void*)0;
 	char pBuf[1024];
 	if (!pFormatstring)
@@ -173,5 +176,104 @@ static void DebugPrint2A(const char* pFormatstring, ...){
 	sg_fpVsnprintf_s(pBuf, sizeof(pBuf), (unsigned long long)(-1), pFormatstring, args); // C4996
 	OutputDebugStringA(pBuf);
 }
-#endif //NOT KM
-#endif //DBGKFUNCS_H
+#endif ///!BOOT_APP
+//#elif defined(BOOT_APP)
+//extern void __cdecl __va_start(va_list *, ...);
+//#define my_va_start(ap, x) (__va_start(&ap, x))
+//typedef int(*P_VSNPRINTF_S)(char *buffer, unsigned long long sizeOfBuffer, unsigned long long count, const char *format, va_list argptr);
+//static P_VSNPRINTF_S sg_fpVsnprintf_s;
+
+static void myWPrintf(const WCHAR* pFormatstring, ...){
+	UNICODE_STRING uPrintBuf, uTitle;
+	ULONG harderrorResponse;
+	WCHAR szPrintBuf[512];
+	va_list args;
+	
+	NTSTATUS status = STATUS_KEY_HAS_CHILDREN;
+	WCHAR szTitle[] = L"Bleh.";
+	ULONGLONG harderrorParams[4] = { 0x0, 0x0, 0x0, 0x0 };
+
+	if (!pFormatstring)
+		return;
+
+	RtlSecureZeroMemory(szPrintBuf, sizeof(szPrintBuf));
+
+	va_start(args, pFormatstring);
+
+#if defined (CONSOLE_APP)
+#if defined(CONSOLE_OUTPUT)
+	wprintf_s(pFormatstring, args);
+	va_end(args);
+#elif defined(DBGVIEW_OUTPUT)
+	status = RtlStringCbPrintfW(szPrintBuf, sizeof(szPrintBuf), pFormatstring, args);
+	va_end(args);
+	if (status){
+		OutputDebugStringW(L"RtlStringCbPrintfW error!");
+		return;
+	}
+
+	OutputDebugStringW(szPrintBuf);
+#else
+#error With CONSOLE_APP, either CONSOLE_OUTPUT or DBGVIEW_OUTPUT must be defined!
+#endif
+
+#elif defined (WIN32_APP)
+#if defined(DBGVIEW_OUTPUT)
+	status = RtlStringCbPrintfW(szPrintBuf, sizeof(szPrintBuf), pFormatstring, args);
+	va_end(args);
+	if (status){
+		OutputDebugStringW(L"RtlStringCbPrintfW error!");
+		return;
+	}
+
+	OutputDebugStringW(szPrintBuf);
+#elif defined (HARDERROR_OUTPUT)
+#error STATUS_NOT_IMPLEMENTED!
+#else
+#error With WIN32_APP, either DBGVIEW_OUTPUT or HARDERROR_OUTPUT must be defined!
+#endif
+
+#elif defined (BOOT_APP)
+#if defined (BOOTSCR_OUTPUT)
+	UNREFERENCED_PARAMETER(harderrorParams);
+	UNREFERENCED_PARAMETER(uTitle);
+	UNREFERENCED_PARAMETER(szTitle);
+	UNREFERENCED_PARAMETER(harderrorResponse);
+	status = RtlStringCbPrintfW(szPrintBuf, sizeof(szPrintBuf), pFormatstring, args);
+	va_end(args);
+
+	if (status)
+		RtlInitUnicodeString(&uPrintBuf, L"RtlStringCbPrintfW error!");
+	else
+		RtlInitUnicodeString(&uPrintBuf, szPrintBuf);
+
+	NtDisplayString(&uPrintBuf);
+#elif defined (HARDERROR_OUTPUT)
+	status = RtlStringCbPrintfW(szPrintBuf, sizeof(szPrintBuf), pFormatstring, args);
+	va_end(args);
+	if (status){
+		NtRaiseHardError(status, 0, 0, NULL, 0, (PULONG)status);
+		return;
+	}
+
+	RtlInitUnicodeString(&uTitle, szTitle);
+	RtlInitUnicodeString(&uPrintBuf, szPrintBuf);
+
+	harderrorParams[0] = (ULONGLONG)&uPrintBuf;
+	harderrorParams[1] = (ULONGLONG)&uTitle;
+	harderrorParams[2] = (ULONGLONG)((ULONG)OptionOk | (ULONG)MB_ICONINFORMATION | (ULONG)0 | (ULONG)MB_DEFBUTTON1);
+	harderrorParams[3] = (ULONGLONG)INFINITE;
+
+	status = NtRaiseHardError(STATUS_SERVICE_NOTIFICATION, 4, 0x3, harderrorParams, 0, &harderrorResponse);
+	if(status)
+		NtRaiseHardError(status, 0, 0, NULL, 0, (PULONG)status);
+#else
+#error With BOOT_APP, either BOOTSCR_OUTPUT or HARDERROR_OUTPUT must be defined!
+#endif
+
+#else
+#error Either CONSOLE_APP, WIN32_APP or BOOT_APP must be defined!
+#endif
+}
+#endif ///UM
+#endif ///DBGKFUNCS_H
