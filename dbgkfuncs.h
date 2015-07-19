@@ -146,69 +146,75 @@ ZwSetInformationDebugObject(
 //#if defined(NTOS_MODE_USER) && !defined(BOOT_APP)
 //int _fltused = 0;
 #if defined(NTOS_MODE_USER)
-#if !defined(BOOT_APP)
-extern void __cdecl __va_start(va_list *, ...);
-#define my_va_start(ap, x) (__va_start(&ap, x))
-typedef int(*P_VSNPRINTF_S)(char *buffer, unsigned long long sizeOfBuffer, unsigned long long count, const char *format, va_list argptr);
-static P_VSNPRINTF_S sg_fpVsnprintf_s;
-
-static void DebugPrint2A(const char* pFormatstring, ...){	///LEGACY!!! Use myWPrintf in new designs!
-	void* hMod = (void*)0;
-	char pBuf[1024];
-	if (!pFormatstring)
-		return;
-
-	pBuf[sizeof(pBuf) - 1] = 0;
-	pBuf[sizeof(pBuf) - 2] = 0;
-	//RtlZeroMemory(pBuf, sizeof(pBuf));
-	//SecureZeroMemory()
-
-	if (!sg_fpVsnprintf_s){
-		hMod = LoadLibraryA("msvcrt.dll");
-		sg_fpVsnprintf_s = (P_VSNPRINTF_S)GetProcAddress(hMod, "_vsnprintf_s");
-		if (!sg_fpVsnprintf_s)
-			return;
-	}
-
-	va_list args;
-	my_va_start(args, pFormatstring);
-
-	sg_fpVsnprintf_s(pBuf, sizeof(pBuf), (unsigned long long)(-1), pFormatstring, args); // C4996
-	OutputDebugStringA(pBuf);
-}
-#endif ///!BOOT_APP
+//#if !defined(BOOT_APP)
+//extern void __cdecl __va_start(va_list *, ...);
+//#define my_va_start(ap, x) (__va_start(&ap, x))
+//typedef int(*P_VSNPRINTF_S)(char *buffer, unsigned long long sizeOfBuffer, unsigned long long count, const char *format, va_list argptr);
+//static P_VSNPRINTF_S sg_fpVsnprintf_s;
+//
+//static void DebugPrint2A(const char* pFormatstring, ...){	///LEGACY!!! Use myWPrintf in new designs!
+//	void* hMod = (void*)0;
+//	char pBuf[1024];
+//	if (!pFormatstring)
+//		return;
+//
+//	pBuf[sizeof(pBuf) - 1] = 0;
+//	pBuf[sizeof(pBuf) - 2] = 0;
+//	//RtlZeroMemory(pBuf, sizeof(pBuf));
+//	//SecureZeroMemory()
+//
+//	if (!sg_fpVsnprintf_s){
+//		hMod = LoadLibraryA("msvcrt.dll");
+//		sg_fpVsnprintf_s = (P_VSNPRINTF_S)GetProcAddress(hMod, "_vsnprintf_s");
+//		if (!sg_fpVsnprintf_s)
+//			return;
+//	}
+//
+//	va_list args;
+//	my_va_start(args, pFormatstring);
+//
+//	sg_fpVsnprintf_s(pBuf, sizeof(pBuf), (unsigned long long)(-1), pFormatstring, args); // C4996
+//	OutputDebugStringA(pBuf);
+//}
+//#endif ///!BOOT_APP
 //#elif defined(BOOT_APP)
 //extern void __cdecl __va_start(va_list *, ...);
 //#define my_va_start(ap, x) (__va_start(&ap, x))
 //typedef int(*P_VSNPRINTF_S)(char *buffer, unsigned long long sizeOfBuffer, unsigned long long count, const char *format, va_list argptr);
 //static P_VSNPRINTF_S sg_fpVsnprintf_s;
 
-static void myWPrintf(const WCHAR* pFormatstring, ...){
-	UNICODE_STRING uPrintBuf, uTitle;
-	ULONG harderrorResponse;
+static void myWPrintf(const WCHAR* pFormatString, ...){
 	WCHAR szPrintBuf[512];
 	va_list args;
-	
-	NTSTATUS status = STATUS_KEY_HAS_CHILDREN;
-	WCHAR szTitle[] = L"Bleh.";
-	ULONGLONG harderrorParams[4] = { 0x0, 0x0, 0x0, 0x0 };
+	NTSTATUS status;
 
-	if (!pFormatstring)
+#if defined (CONSOLE_APP)
+#if defined(CONSOLE_OUTPUT)
+#error STATUS_NOT_IMPLEMENTED!
+#elif defined(DBGVIEW_OUTPUT)
+
+	if (!pFormatString)
 		return;
 
 	RtlSecureZeroMemory(szPrintBuf, sizeof(szPrintBuf));
 
-	va_start(args, pFormatstring);
+#pragma warning(push)
+#pragma warning(disable:4995) ///name was marked as #pragma deprecated
+	status = RtlStringValidateDestW(szPrintBuf, sizeof(szPrintBuf)/sizeof(WCHAR), NTSTRSAFE_MAX_CCH);
+#pragma warning(pop)
+	if(status){
+		OutputDebugStringW(L"RtlStringValidateDestW error!");
+		return;
+	}
 
-#if defined (CONSOLE_APP)
-#if defined(CONSOLE_OUTPUT)
-	wprintf_s(pFormatstring, args);
-	va_end(args);
-#elif defined(DBGVIEW_OUTPUT)
-	status = RtlStringCbPrintfW(szPrintBuf, sizeof(szPrintBuf), pFormatstring, args);
+	va_start(args, pFormatString);
+#pragma warning(push)
+#pragma warning(disable:4995) ///name was marked as #pragma deprecated
+	status = RtlStringVPrintfWorkerW(szPrintBuf, sizeof(szPrintBuf) / sizeof(WCHAR), NULL, pFormatString, args);
+#pragma warning(pop)
 	va_end(args);
 	if (status){
-		OutputDebugStringW(L"RtlStringCbPrintfW error!");
+		OutputDebugStringW(L"RtlStringVPrintfWorkerW error!");
 		return;
 	}
 
@@ -219,46 +225,148 @@ static void myWPrintf(const WCHAR* pFormatstring, ...){
 
 #elif defined (WIN32_APP)
 #if defined(DBGVIEW_OUTPUT)
-	status = RtlStringCbPrintfW(szPrintBuf, sizeof(szPrintBuf), pFormatstring, args);
+	
+	if (!pFormatString)
+		return;
+
+	RtlSecureZeroMemory(szPrintBuf, sizeof(szPrintBuf));
+
+#pragma warning(push)
+#pragma warning(disable:4995) ///name was marked as #pragma deprecated
+	status = RtlStringValidateDestW(szPrintBuf, sizeof(szPrintBuf)/sizeof(WCHAR), NTSTRSAFE_MAX_CCH);
+#pragma warning(pop)
+	if(status){
+		OutputDebugStringW(L"RtlStringValidateDestW error!");
+		return;
+	}
+
+	va_start(args, pFormatString);
+#pragma warning(push)
+#pragma warning(disable:4995) ///name was marked as #pragma deprecated
+	status = RtlStringVPrintfWorkerW(szPrintBuf, sizeof(szPrintBuf) / sizeof(WCHAR), NULL, pFormatString, args);
+#pragma warning(pop)
 	va_end(args);
 	if (status){
-		OutputDebugStringW(L"RtlStringCbPrintfW error!");
+		OutputDebugStringW(L"RtlStringVPrintfWorkerW error!");
 		return;
 	}
 
 	OutputDebugStringW(szPrintBuf);
 #elif defined (HARDERROR_OUTPUT)
-#error STATUS_NOT_IMPLEMENTED!
-#else
-#error With WIN32_APP, either DBGVIEW_OUTPUT or HARDERROR_OUTPUT must be defined!
-#endif
+	ULONG harderrorResponse;
+	ULONGLONG harderrorParams[4];
+	UNICODE_STRING uPrintBuf;
+	UNICODE_STRING uTitle;
+	WCHAR szTitle[] = L"Bla,undso !!!!!";
 
-#elif defined (BOOT_APP)
-#if defined (BOOTSCR_OUTPUT)
-	UNREFERENCED_PARAMETER(harderrorParams);
-	UNREFERENCED_PARAMETER(uTitle);
-	UNREFERENCED_PARAMETER(szTitle);
-	UNREFERENCED_PARAMETER(harderrorResponse);
-	status = RtlStringCbPrintfW(szPrintBuf, sizeof(szPrintBuf), pFormatstring, args);
-	va_end(args);
+	if (!pFormatString)
+		return;
 
-	if (status)
-		RtlInitUnicodeString(&uPrintBuf, L"RtlStringCbPrintfW error!");
-	else
-		RtlInitUnicodeString(&uPrintBuf, szPrintBuf);
+	RtlSecureZeroMemory(szPrintBuf, sizeof(szPrintBuf));
 
-	NtDisplayString(&uPrintBuf);
-#elif defined (HARDERROR_OUTPUT)
-	status = RtlStringCbPrintfW(szPrintBuf, sizeof(szPrintBuf), pFormatstring, args);
+#pragma warning(push)
+#pragma warning(disable:4995) ///name was marked as #pragma deprecated
+	status = RtlStringValidateDestW(szPrintBuf, sizeof(szPrintBuf) / sizeof(WCHAR), NTSTRSAFE_MAX_CCH);
+#pragma warning(pop)
+	if (status){
+		NtRaiseHardError(status, 0, 0, NULL, 0, (PULONG)status);
+		return;
+	}
+
+	va_start(args, pFormatString);
+#pragma warning(push)
+#pragma warning(disable:4995) ///name was marked as #pragma deprecated
+	status = RtlStringVPrintfWorkerW(szPrintBuf, sizeof(szPrintBuf) / sizeof(WCHAR), NULL, pFormatString, args);
+#pragma warning(pop)
 	va_end(args);
 	if (status){
 		NtRaiseHardError(status, 0, 0, NULL, 0, (PULONG)status);
 		return;
 	}
 
-	RtlInitUnicodeString(&uTitle, szTitle);
 	RtlInitUnicodeString(&uPrintBuf, szPrintBuf);
+	RtlInitUnicodeString(&uTitle, szTitle);
 
+	harderrorParams[0] = (ULONGLONG)&uPrintBuf;
+	harderrorParams[1] = (ULONGLONG)&uTitle;
+	harderrorParams[2] = (ULONGLONG)((ULONG)OptionOk | (ULONG)MB_ICONINFORMATION | (ULONG)0 | (ULONG)MB_DEFBUTTON1);
+	harderrorParams[3] = (ULONGLONG)INFINITE;
+
+	status = NtRaiseHardError(STATUS_SERVICE_NOTIFICATION, 4, 0x3, harderrorParams, 0, &harderrorResponse);
+	if (status)
+		NtRaiseHardError(status, 0, 0, NULL, 0, (PULONG)status);
+#else
+#error With WIN32_APP, either DBGVIEW_OUTPUT or HARDERROR_OUTPUT must be defined!
+#endif
+
+#elif defined (BOOT_APP)
+#if defined (BOOTSCR_OUTPUT)
+	UNICODE_STRING uPrintBuf;
+
+	if (!pFormatString)
+		return;
+
+	RtlSecureZeroMemory(szPrintBuf, sizeof(szPrintBuf));
+
+#pragma warning(push)
+#pragma warning(disable:4995) ///name was marked as #pragma deprecated
+	status = RtlStringValidateDestW(szPrintBuf, sizeof(szPrintBuf) / sizeof(WCHAR), NTSTRSAFE_MAX_CCH);
+#pragma warning(pop)
+	if (status){
+		RtlInitUnicodeString(&uPrintBuf, L"RtlStringCbPrintfW error!");
+		NtDisplayString(&uPrintBuf);
+		return;
+	}
+	
+	va_start(args, pFormatString);
+#pragma warning(push)
+#pragma warning(disable:4995) ///name was marked as #pragma deprecated
+	status = RtlStringVPrintfWorkerW(szPrintBuf, sizeof(szPrintBuf) / sizeof(WCHAR), NULL, pFormatString, args);
+#pragma warning(pop)
+	va_end(args);
+	if (status){
+		RtlInitUnicodeString(&uPrintBuf, L"RtlStringVPrintfWorkerW error!");
+		NtDisplayString(&uPrintBuf);
+		return;
+	}
+
+	RtlInitUnicodeString(&uPrintBuf, szPrintBuf);
+	NtDisplayString(&uPrintBuf);
+#elif defined (HARDERROR_OUTPUT)
+	ULONG harderrorResponse;
+	ULONGLONG harderrorParams[4];
+	UNICODE_STRING uPrintBuf;
+	UNICODE_STRING uTitle;
+	WCHAR szTitle[] = L"Bla,undso !!!!!";
+
+	if (!pFormatString)
+		return;
+
+	RtlSecureZeroMemory(szPrintBuf, sizeof(szPrintBuf));
+
+#pragma warning(push)
+#pragma warning(disable:4995) ///name was marked as #pragma deprecated
+	status = RtlStringValidateDestW(szPrintBuf, sizeof(szPrintBuf) / sizeof(WCHAR), NTSTRSAFE_MAX_CCH);
+#pragma warning(pop)
+	if (status){
+		NtRaiseHardError(status, 0, 0, NULL, 0, (PULONG)status);
+		return;
+	}
+
+	va_start(args, pFormatString);
+#pragma warning(push)
+#pragma warning(disable:4995) ///name was marked as #pragma deprecated
+	status = RtlStringVPrintfWorkerW(szPrintBuf, sizeof(szPrintBuf) / sizeof(WCHAR), NULL, pFormatString, args);
+#pragma warning(pop)
+	va_end(args);
+	if (status){
+		NtRaiseHardError(status, 0, 0, NULL, 0, (PULONG)status);
+		return;
+	}
+
+	RtlInitUnicodeString(&uPrintBuf, szPrintBuf);
+	RtlInitUnicodeString(&uTitle, szTitle);
+	
 	harderrorParams[0] = (ULONGLONG)&uPrintBuf;
 	harderrorParams[1] = (ULONGLONG)&uTitle;
 	harderrorParams[2] = (ULONGLONG)((ULONG)OptionOk | (ULONG)MB_ICONINFORMATION | (ULONG)0 | (ULONG)MB_DEFBUTTON1);
