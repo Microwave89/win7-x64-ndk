@@ -403,7 +403,7 @@ NtCreateProcessEx(
     _In_opt_ HANDLE SectionHandle,
     _In_opt_ HANDLE DebugPort,
     _In_opt_ HANDLE ExceptionPort,
-    _In_ BOOLEAN InJob
+    _In_ ULONG InJob
 );
 
 NTSYSCALLAPI
@@ -428,9 +428,9 @@ _Out_ PHANDLE ThreadHandle,
 _In_ ACCESS_MASK DesiredAccess,
 _In_opt_ POBJECT_ATTRIBUTES ObjectAttributes,
 _In_ HANDLE ProcessHandle,
-_In_ LPTHREAD_START_ROUTINE StartRoutine,
+_In_ PTHREAD_START_ROUTINE StartRoutine,
 _In_opt_ PVOID Argument,
-_In_ ULONG CreateFlags,
+_In_ BOOLEAN CreateSuspended,
 _In_opt_ ULONG_PTR ZeroBits,
 _In_opt_ SIZE_T StackSize,
 _In_opt_ SIZE_T MaximumStackSize,
@@ -446,8 +446,8 @@ __in ACCESS_MASK ProcessDesiredAccess,
 __in ACCESS_MASK ThreadDesiredAccess,
 __in_opt POBJECT_ATTRIBUTES ProcessObjectAttributes,
 __in_opt POBJECT_ATTRIBUTES ThreadObjectAttributes,
-__in ULONG ProcessFlags,
-__in ULONG ThreadFlags,
+__in ULONGLONG ProcessFlags,
+__in ULONGLONG ThreadFlags,
 __in_opt PRTL_USER_PROCESS_PARAMETERS ProcessParameters,
 __inout PVOID CreateInfo,
 __in_opt PVOID AttributeList

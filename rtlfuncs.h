@@ -2412,6 +2412,23 @@ RtlCreateProcessParameters (
 NTSYSAPI
 NTSTATUS
 NTAPI
+RtlCreateProcessParametersEx(
+_Out_ PRTL_USER_PROCESS_PARAMETERS *ProcessParameters,
+_In_ PUNICODE_STRING ImagePathName,
+_In_opt_ PUNICODE_STRING DllPath,
+_In_opt_ PUNICODE_STRING CurrentDirectory,
+_In_opt_ PUNICODE_STRING CommandLine,
+_In_opt_ PWSTR Environment,
+_In_opt_ PUNICODE_STRING WindowTitle,
+_In_opt_ PUNICODE_STRING DesktopInfo,
+_In_opt_ PUNICODE_STRING ShellInfo,
+_In_opt_ PUNICODE_STRING RuntimeInfo,
+OPTIONAL PVOID Unknown
+);
+
+NTSYSAPI
+NTSTATUS
+NTAPI
 RtlCreateUserProcess(
     _In_ PUNICODE_STRING ImageFileName,
     _In_ ULONG Attributes,
@@ -3706,6 +3723,12 @@ RtlCreateRegistryKey(
     _In_ ULONG RelativeTo,
     _In_ PWSTR Path
 );
+
+NTSTATUS RtlDeleteRegistryValue(
+	_In_ ULONG  RelativeTo,
+	_In_ PCWSTR Path,
+	_In_ PCWSTR ValueName
+	);
 
 NTSYSAPI
 NTSTATUS

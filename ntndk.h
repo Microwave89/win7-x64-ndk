@@ -73,7 +73,7 @@ Author:
 // Function Headers
 //
 #include <..\ndk\cmfuncs.h>        // Configuration Manager Functions
-#include <..\ndk\dbgkfuncs.h>      // User-Mode Kernel Debugging Functions
+//#include <..\ndk\dbgkfuncs.h>      // User-Mode Kernel Debugging Functions
 #include <..\ndk\kdfuncs.h>        // Kernel Debugger Functions
 #include <..\ndk\kefuncs.h>        // Kernel Functions
 #include <..\ndk\exfuncs.h>        // Executive Functions
@@ -90,6 +90,7 @@ Author:
 #include <..\ndk\sefuncs.h>        // Security Subsystem Functions
 #include <..\ndk\umfuncs.h>        // User-Mode NT Library Functions
 #include <..\ndk\vffuncs.h>        // Verifier Functions
+#include <..\ndk\dbgkfuncs.h>      // User-Mode Kernel Debugging Functions
 
 //
 // Assembly Support

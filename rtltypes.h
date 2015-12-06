@@ -1350,15 +1350,15 @@ typedef struct _RTL_RESOURCE
 //
 typedef struct _RTL_USER_PROCESS_PARAMETERS
 {
-    ULONG MaximumLength;
-    ULONG Length;
-    ULONG Flags;
-    ULONG DebugFlags;
-    HANDLE ConsoleHandle;
-    ULONG ConsoleFlags;
-    HANDLE StandardInput;
-    HANDLE StandardOutput;
-    HANDLE StandardError;
+    ULONG MaximumLength;	//6c0
+    ULONG Length;//6c0
+    ULONG Flags;//0
+    ULONG DebugFlags;//0
+    HANDLE ConsoleHandle;//NULL
+    ULONG ConsoleFlags;//0
+    HANDLE StandardInput;//NULL
+    HANDLE StandardOutput;//NULL
+    HANDLE StandardError;//NULL
     CURDIR CurrentDirectory;
     UNICODE_STRING DllPath;
     UNICODE_STRING ImagePathName;

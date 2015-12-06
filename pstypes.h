@@ -737,7 +737,7 @@ typedef struct _Wx86ThreadState
 #ifdef NTOS_MODE_USER
 
 //
-// Process Information Structures for NtQueryProcessInformation
+// Process Information Structures for NtQueryInformationProcess
 //
 typedef struct _PROCESS_BASIC_INFORMATION
 {

@@ -91,7 +91,7 @@ LdrGetProcedureAddress(
     _In_ PVOID BaseAddress,
     _In_ PANSI_STRING Name,
     _In_ ULONG Ordinal,
-    _Out_ PVOID *ProcedureAddress
+    _Out_ FARPROC* ProcedureAddress
 );
 
 ULONG

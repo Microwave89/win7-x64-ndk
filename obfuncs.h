@@ -129,6 +129,8 @@ ObReferenceObjectByName(
     _Out_ PVOID *Object
 );
 
+POBJECT_HEADER_NAME_INFO ObQueryNameInfo(_In_ PVOID pObject);
+
 NTKERNELAPI
 VOID
 NTAPI

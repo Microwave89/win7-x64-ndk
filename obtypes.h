@@ -271,8 +271,7 @@ typedef struct _OBJECT_DIRECTORY_INFORMATION
 //
 // Object Type Information
 //
-typedef struct _OBJECT_TYPE_INFORMATION
-{
+typedef struct _OBJECT_TYPE_INFORMATION{
     UNICODE_STRING TypeName;
     ULONG TotalNumberOfObjects;
     ULONG TotalNumberOfHandles;
@@ -296,10 +295,9 @@ typedef struct _OBJECT_TYPE_INFORMATION
     ULONG DefaultNonPagedPoolCharge;
 } OBJECT_TYPE_INFORMATION, *POBJECT_TYPE_INFORMATION;
 
-typedef struct _OBJECT_ALL_TYPES_INFORMATION
-{
+typedef struct _OBJECT_ALL_TYPES_INFORMATION{
     ULONG NumberOfTypes;
-    //OBJECT_TYPE_INFORMATION TypeInformation[1];
+    OBJECT_TYPE_INFORMATION TypeInformation[1];
 } OBJECT_ALL_TYPES_INFORMATION, *POBJECT_ALL_TYPES_INFORMATION;
 
 #ifdef NTOS_MODE_USER

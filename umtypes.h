@@ -140,12 +140,19 @@ typedef LONG KPRIORITY;
 #if !defined(__BCRYPT_H__) && !defined(__WINE_BCRYPT_H)
 typedef _Return_type_success_(return >= 0) long NTSTATUS, *PNTSTATUS;
 #endif
-
+//#define Length LengthInBytes
+//#define MaximumLength MaximumLengthInBytes
 typedef struct _UNICODE_STRING
 {
-    USHORT Length;
-    USHORT MaximumLength;
-    PWSTR Buffer;
+	union {
+		USHORT Length;
+		USHORT LengthInBytes;
+	};
+	union {
+		USHORT MaximumLength;
+		USHORT MaximumLengthInBytes;
+	};
+	PWSTR Buffer;
 } UNICODE_STRING, *PUNICODE_STRING;
 
 typedef struct _STRING

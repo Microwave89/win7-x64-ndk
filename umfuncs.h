@@ -237,7 +237,7 @@ LdrGetProcedureAddress(
     _In_ PVOID BaseAddress,
     _In_ PANSI_STRING Name,
     _In_ ULONG Ordinal,
-    _Out_ PVOID *ProcedureAddress
+    _Out_ FARPROC* ProcedureAddress
 );
 
 VOID
@@ -2819,8 +2819,8 @@ __in ACCESS_MASK ProcessDesiredAccess,
 __in ACCESS_MASK ThreadDesiredAccess,
 __in_opt POBJECT_ATTRIBUTES ProcessObjectAttributes,
 __in_opt POBJECT_ATTRIBUTES ThreadObjectAttributes,
-__in ULONG ProcessFlags,
-__in ULONG ThreadFlags,
+__in ULONGLONG ProcessFlags,
+__in ULONGLONG ThreadFlags,
 __in_opt PRTL_USER_PROCESS_PARAMETERS ProcessParameters,
 __inout PVOID CreateInfo,
 __in_opt PVOID AttributeList

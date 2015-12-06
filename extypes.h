@@ -278,7 +278,7 @@ typedef enum _SYSTEM_INFORMATION_CLASS
     SystemProcessorPowerInformation,
     SystemEmulationBasicInformation,
     SystemEmulationProcessorInformation,
-    SystemExtendedHanfleInformation,
+    SystemExtendedHandleInformation,
     SystemLostDelayedWriteInformation,
     SystemBigPoolInformation,
     SystemSessionPoolTagInformation,
@@ -907,7 +907,7 @@ typedef struct _SYSTEM_PROCESS_INFORMATION
     LARGE_INTEGER ReadTransferCount;
     LARGE_INTEGER WriteTransferCount;
     LARGE_INTEGER OtherTransferCount;
-//    SYSTEM_THREAD_INFORMATION TH[1];
+	SYSTEM_THREAD_INFORMATION TH[1];
 } SYSTEM_PROCESS_INFORMATION, *PSYSTEM_PROCESS_INFORMATION;
 #ifndef _WIN64
 C_ASSERT(sizeof(SYSTEM_PROCESS_INFORMATION) == 0xB8); // Must be 8-byte aligned
